@@ -1,0 +1,34 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Hexagon shape -->
+  <path d="M100 10 L170 50 L170 130 L100 170 L30 130 L30 50 Z" 
+        fill="none" 
+        stroke="#48bb78" 
+        stroke-width="6" 
+        stroke-linejoin="round"/>
+  
+  <!-- Stethoscope design -->
+  <!-- Head circle -->
+  <circle cx="100" cy="60" r="18" fill="#48bb78"/>
+  <circle cx="100" cy="60" r="12" fill="white"/>
+  
+  <!-- Tube/cord -->
+  <path d="M100 78 Q85 95 85 115 Q85 130 95 135" 
+        fill="none" 
+        stroke="#48bb78" 
+        stroke-width="8" 
+        stroke-linecap="round"/>
+  
+  <path d="M100 78 Q115 95 115 115 Q115 130 105 135" 
+        fill="none" 
+        stroke="#48bb78" 
+        stroke-width="8" 
+        stroke-linecap="round"/>
+  
+  <!-- Bottom connector -->
+  <ellipse cx="100" cy="135" rx="15" ry="10" fill="#48bb78"/>
+  
+  <!-- Pulse indicator dot -->
+  <circle cx="125" cy="45" r="8" fill="#68d391">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>

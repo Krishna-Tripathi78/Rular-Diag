@@ -1,0 +1,104 @@
+.nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(7,21,32,0.75);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border-bottom: 1px solid rgba(20,184,166,0.1);
+}
+.nav::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(20,184,166,0.3) 30%, rgba(56,189,248,0.3) 70%, transparent);
+    pointer-events: none;
+}
+.inner {
+    max-width: 1280px; margin: 0 auto;
+    padding: 0 32px; height: 66px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 11px; }
+.logoWrap {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(20,184,166,0.08);
+    border: 1px solid rgba(20,184,166,0.2);
+    overflow: hidden; flex-shrink: 0;
+}
+.brandName { display: block; font-size: 17px; font-weight: 800; color: #fff; line-height: 1.2; letter-spacing: -0.01em; }
+.brandSub  { display: block; font-size: 10.5px; color: rgba(20,184,166,0.55); font-weight: 500; }
+
+.links {
+    display: flex; gap: 2px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 4px;
+}
+.link {
+    padding: 7px 16px; border-radius: 8px;
+    font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.55);
+    transition: all 0.18s ease; position: relative;
+    display: flex; align-items: center; gap: 6px;
+}
+.link:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+.linkActive {
+    background: rgba(20,184,166,0.12) !important;
+    color: #2dd4bf !important;
+    border: 1px solid rgba(20,184,166,0.2);
+}
+.activeDot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #2dd4bf;
+    box-shadow: 0 0 6px rgba(20,184,166,0.6);
+}
+
+.right { display: flex; align-items: center; gap: 10px; }
+.iconBtn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 8px 10px; border-radius: 9px;
+    font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.18s ease;
+}
+.iconBtn:hover { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); }
+.langLabel { font-size: 12px; font-weight: 700; }
+.loginBtn {
+    padding: 8px 18px; border-radius: 9px;
+    font-size: 13.5px; font-weight: 600;
+    color: rgba(255,255,255,0.6); background: transparent;
+    transition: all 0.18s ease;
+}
+.loginBtn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.ctaBtn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 9px 20px; border-radius: 9px;
+    background: transparent;
+    border: 1px solid rgba(20,184,166,0.45);
+    color: #2dd4bf; font-size: 13.5px; font-weight: 600;
+    transition: all 0.18s ease; position: relative; overflow: hidden;
+}
+.ctaBtn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(20,184,166,0.12), rgba(56,189,248,0.08));
+    opacity: 0; transition: opacity 0.18s ease;
+}
+.ctaBtn:hover { border-color: rgba(20,184,166,0.7); color: #5eead4; box-shadow: 0 0 20px rgba(20,184,166,0.15); }
+.ctaBtn:hover::before { opacity: 1; }
+
+@media (max-width: 768px) {
+    .links { display: none; }
+    .loginBtn { display: none; }
+}
+
+/* Light theme overrides */
+:global([data-theme='light']) .nav {
+    background: rgba(240,250,248,0.85);
+    border-bottom-color: rgba(20,184,166,0.2);
+}
+:global([data-theme='light']) .brandName { color: #0f172a; }
+:global([data-theme='light']) .link { color: rgba(15,23,42,0.6); }
+:global([data-theme='light']) .link:hover { background: rgba(0,0,0,0.05); color: #0f172a; }
+:global([data-theme='light']) .links { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+:global([data-theme='light']) .loginBtn { color: rgba(15,23,42,0.6); }
+:global([data-theme='light']) .loginBtn:hover { color: #0f172a; background: rgba(0,0,0,0.05); }
+:global([data-theme='light']) .iconBtn { color: rgba(15,23,42,0.6); background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+:global([data-theme='light']) .iconBtn:hover { color: #0f172a; background: rgba(0,0,0,0.08); }
