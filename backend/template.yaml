@@ -1,0 +1,300 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: RuralDiag - AI Healthcare Assistant for ASHA Workers
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: nodejs18.x
+    MemorySize: 512
+    Environment:
+      Variables:
+        PATIENT_TABLE: !Ref PatientTable
+        DIAGNOSIS_TABLE: !Ref DiagnosisTable
+        ALERT_TOPIC: !Ref AlertTopic
+        REGION: !Ref AWS::Region
+
+Resources:
+  # API Gateway
+  RuralDiagAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: RuralDiag API
+      StageName: prod
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      Auth:
+        ApiKeyRequired: false
+
+  # Lambda Functions
+  DiagnosisFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/diagnosis/
+      Handler: index.handler
+      Description: AI-powered diagnosis using AWS Bedrock
+      Events:
+        DiagnosisAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RuralDiagAPI
+            Path: /diagnose
+            Method: post
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PatientTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DiagnosisTable
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt AlertTopic.TopicName
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource: '*'
+
+  SeverityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/severity/
+      Handler: index.handler
+      Description: Calculate severity scores for medical conditions
+      Events:
+        SeverityAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RuralDiagAPI
+            Path: /severity
+            Method: post
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DiagnosisTable
+
+  SyncFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/sync/
+      Handler: index.handler
+      Description: Sync offline data to cloud
+      Environment:
+        Variables:
+          PATIENT_DATA_BUCKET: !Ref PatientDataBucket
+      Events:
+        SyncAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RuralDiagAPI
+            Path: /sync
+            Method: post
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PatientTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DiagnosisTable
+        - S3CrudPolicy:
+            BucketName: !Ref PatientDataBucket
+
+  AlertsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/alerts/
+      Handler: index.handler
+      Description: Send emergency alerts via SNS
+      Events:
+        AlertsAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RuralDiagAPI
+            Path: /alerts
+            Method: post
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt AlertTopic.TopicName
+        - DynamoDBReadPolicy:
+            TableName: !Ref PatientTable
+
+  AnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/analytics/
+      Handler: index.handler
+      Description: Health analytics and dashboard data
+      Events:
+        AnalyticsAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RuralDiagAPI
+            Path: /analytics
+            Method: get
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PatientTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref DiagnosisTable
+
+  # DynamoDB Tables
+  PatientTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: RuralDiag-Patients
+      AttributeDefinitions:
+        - AttributeName: patientId
+          AttributeType: S
+        - AttributeName: village
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: patientId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: VillageIndex
+          KeySchema:
+            - AttributeName: village
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+  DiagnosisTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: RuralDiag-Diagnoses
+      AttributeDefinitions:
+        - AttributeName: diagnosisId
+          AttributeType: S
+        - AttributeName: patientId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: diagnosisId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: PatientIndex
+          KeySchema:
+            - AttributeName: patientId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  # S3 Bucket for patient files
+  PatientDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'ruraldiag-patient-data-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 30
+
+  # SNS Topic for alerts
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: RuralDiag-Alerts
+      DisplayName: RuralDiag Emergency Alerts
+
+  # CloudWatch Dashboard
+  HealthDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: RuralDiag-Health-Metrics
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "AWS/Lambda", "Invocations", "FunctionName", "${DiagnosisFunction}" ],
+                  [ ".", "Errors", ".", "." ],
+                  [ ".", "Duration", ".", "." ]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "Diagnosis Function Metrics"
+              }
+            },
+            {
+              "type": "metric",
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "${PatientTable}" ],
+                  [ ".", "ConsumedWriteCapacityUnits", ".", "." ]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "DynamoDB Usage"
+              }
+            }
+          ]
+        }
+
+Outputs:
+  RuralDiagAPI:
+    Description: "API Gateway endpoint URL for RuralDiag"
+    Value: !Sub "https://${RuralDiagAPI}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+    Export:
+      Name: RuralDiagAPIUrl
+
+  PatientTable:
+    Description: "DynamoDB Patient table name"
+    Value: !Ref PatientTable
+    Export:
+      Name: PatientTableName
+
+  DiagnosisTable:
+    Description: "DynamoDB Diagnosis table name"
+    Value: !Ref DiagnosisTable
+    Export:
+      Name: DiagnosisTableName
+
+  PatientDataBucket:
+    Description: "S3 bucket for patient data"
+    Value: !Ref PatientDataBucket
+    Export:
+      Name: PatientDataBucketName
+
+  AlertTopicArn:
+    Description: "SNS Topic ARN for alerts"
+    Value: !Ref AlertTopic
+    Export:
+      Name: AlertTopicArn

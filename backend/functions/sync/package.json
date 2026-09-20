@@ -1,0 +1,9 @@
+{
+    "name": "ruraldiag-sync",
+    "version": "1.0.0",
+    "main": "index.js",
+    "dependencies": {
+        "aws-sdk": "^2.1691.0",
+        "uuid": "^9.0.1"
+    }
+}

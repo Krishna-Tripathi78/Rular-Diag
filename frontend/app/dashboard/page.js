@@ -3,17 +3,16 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import Image from 'next/image'
 import {
     LayoutDashboard, Users, PlusCircle, BarChart3, Settings,
-    LogOut, Bell, Search, TrendingUp, AlertTriangle, CheckCircle, Calendar,
+    LogOut, Bell, AlertTriangle, CheckCircle, Calendar,
     ChevronRight, Activity, User
 } from 'lucide-react'
 import styles from './dashboard.module.css'
 
 const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', active: true },
-    { icon: Users, label: 'Patients', href: '/dashboard' },
     { icon: BarChart3, label: 'Analytics', href: '/analytics' },
     { icon: User, label: 'Profile', href: '/profile' },
     { icon: Settings, label: 'Settings', href: '/settings' },
@@ -23,6 +22,7 @@ export default function Dashboard() {
     const router = useRouter()
     const [worker, setWorker] = useState(null)
     const [patients, setPatients] = useState([])
+    const [pendingSync, setPendingSync] = useState(0)
 
     useEffect(() => {
         const w = localStorage.getItem('worker') || localStorage.getItem('user')
@@ -30,18 +30,21 @@ export default function Dashboard() {
         setWorker(JSON.parse(w))
         const p = localStorage.getItem('patients')
         if (p) setPatients(JSON.parse(p))
+
+        const offline = JSON.parse(localStorage.getItem('ruraldiag_pending') || '[]')
+        setPendingSync(offline.length)
     }, [router])
 
     if (!worker) return null
 
-    const high = patients.filter(p => p.severity === 'high').length
-    const medium = patients.filter(p => p.severity === 'medium').length
+    const critical = patients.filter(p => p.diagnosis?.urgency === 'critical' || p.severity === 'high').length
+    const medium = patients.filter(p => p.diagnosis?.urgency === 'high' || p.severity === 'medium').length
 
     const statCards = [
-        { label: 'Total Patients', value: patients.length, icon: Users, color: '#2dd4bf', bg: 'rgba(20,184,166,0.12)', trend: '+12%' },
-        { label: 'Critical Cases', value: high, icon: AlertTriangle, color: '#fb7185', bg: 'rgba(251,113,133,0.12)', trend: high > 0 ? 'Needs attention' : 'All clear' },
-        { label: 'Medium Risk', value: medium, icon: Activity, color: '#fbbf24', bg: 'rgba(251,191,36,0.12)', trend: 'Monitor' },
-        { label: "Today's Date", value: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }), icon: Calendar, color: '#38bdf8', bg: 'rgba(56,189,248,0.12)', trend: new Date().toLocaleDateString('en-IN', { weekday: 'long' }) },
+        { label: 'Total Patients', value: patients.length, icon: Users, color: '#2dd4bf', bg: 'rgba(20,184,166,0.12)' },
+        { label: 'Critical Cases', value: critical, icon: AlertTriangle, color: '#f87171', bg: 'rgba(239,68,68,0.12)' },
+        { label: 'Medium Risk', value: medium, icon: Activity, color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' },
+        { label: 'Pending Sync', value: pendingSync, icon: Calendar, color: '#60a5fa', bg: 'rgba(59,130,246,0.12)' },
     ]
 
     return (
@@ -50,7 +53,7 @@ export default function Dashboard() {
             <aside className={styles.sidebar}>
                 <div className={styles.sidebarBrand}>
                     <div className={styles.sidebarLogo}>
-                        <img src="/logo.png" alt="RuralDiag" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        <Image src="/logo.svg" alt="RuralDiag" width={32} height={32} />
                     </div>
                     <div>
                         <div className={styles.sidebarBrandName}>RuralDiag</div>
@@ -69,7 +72,9 @@ export default function Dashboard() {
 
                 <div className={styles.sidebarFooter}>
                     <div className={styles.workerCard}>
-                        <div className={styles.workerAvatar}>{(worker.workerName || worker.name || 'U')[0].toUpperCase()}</div>
+                        <div className={styles.workerAvatar}>
+                            {(worker.workerName || worker.name || 'U')[0].toUpperCase()}
+                        </div>
                         <div>
                             <div className={styles.workerName}>{worker.workerName || worker.name}</div>
                             <div className={styles.workerVillage}>{worker.village || 'ASHA Worker'}</div>
@@ -86,10 +91,17 @@ export default function Dashboard() {
                 {/* Topbar */}
                 <div className={styles.topbar}>
                     <div>
-                        <h1 className={styles.pageTitle}>नमस्ते, {worker.workerName || worker.name} 👋</h1>
-                        <p className={styles.pageSubtitle}>{worker.village ? `${worker.village} गांव` : 'Welcome back'} — {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        <h1 className={styles.pageTitle}>
+                            नमस्ते, {worker.workerName || worker.name} 👋
+                        </h1>
+                        <p className={styles.pageSubtitle}>
+                            {worker.village ? `${worker.village} गांव` : 'Welcome back'} — {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
                     </div>
                     <div className={styles.topbarActions}>
+                        {pendingSync > 0 && (
+                            <div className={styles.syncBadge}>{pendingSync} offline</div>
+                        )}
                         <button className={styles.iconBtn}><Bell size={18} /></button>
                         <button onClick={() => router.push('/visit')} className={styles.newVisitBtn}>
                             <PlusCircle size={18} /> New Patient
@@ -98,45 +110,42 @@ export default function Dashboard() {
                 </div>
 
                 <div className={styles.content}>
-                    {/* Stat cards */}
+                    {/* Stats */}
                     <div className={styles.statsGrid}>
-                        {statCards.map(({ label, value, icon: Icon, color, bg, trend }, i) => (
-                            <motion.div
-                                key={label}
-                                className={styles.statCard}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.08 }}
-                            >
+                        {statCards.map(({ label, value, icon: Icon, color, bg }) => (
+                            <div key={label} className={styles.statCard}>
                                 <div className={styles.statCardTop}>
-                                    <div className={styles.statIconBox} style={{ background: bg, color }}><Icon size={22} /></div>
-                                    <span className={styles.statTrend}>{trend}</span>
+                                    <div className={styles.statIconBox} style={{ background: bg, color }}>
+                                        <Icon size={22} />
+                                    </div>
                                 </div>
                                 <div className={styles.statValue}>{value}</div>
                                 <div className={styles.statLabel}>{label}</div>
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
 
                     {/* Quick action */}
-                    <motion.div className={styles.quickAction} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+                    <div className={styles.quickAction}>
                         <div className={styles.qaLeft}>
                             <div className={styles.qaIcon}><PlusCircle size={28} /></div>
                             <div>
                                 <h3>Start a New Patient Visit</h3>
-                                <p>Record symptoms, get AI diagnosis, and save patient data</p>
+                                <p>Record symptoms, get AI diagnosis, save patient data offline or online</p>
                             </div>
                         </div>
                         <button onClick={() => router.push('/visit')} className={styles.qaBtn}>
                             Start Visit <ChevronRight size={18} />
                         </button>
-                    </motion.div>
+                    </div>
 
                     {/* Recent patients */}
-                    <motion.div className={styles.section} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+                    <div className={styles.section}>
                         <div className={styles.sectionHead}>
                             <h2>Recent Patients</h2>
-                            <Link href="/analytics" className={styles.viewAll}>View Analytics <ChevronRight size={14} /></Link>
+                            <Link href="/analytics" className={styles.viewAll}>
+                                View Analytics <ChevronRight size={14} />
+                            </Link>
                         </div>
 
                         {patients.length === 0 ? (
@@ -150,31 +159,37 @@ export default function Dashboard() {
                             </div>
                         ) : (
                             <div className={styles.patientList}>
-                                {patients.slice(-6).reverse().map((p, i) => (
-                                    <motion.div
-                                        key={i}
-                                        className={styles.patientRow}
-                                        initial={{ opacity: 0, x: -12 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.5 + i * 0.06 }}
-                                    >
-                                        <div className={styles.patientAvatar}>{p.name?.[0]?.toUpperCase() || '?'}</div>
-                                        <div className={styles.patientInfo}>
-                                            <div className={styles.patientName}>{p.name}</div>
-                                            <div className={styles.patientMeta}>{p.age} yrs • {p.gender === 'male' ? 'Male' : 'Female'}</div>
+                                {patients.slice(-8).reverse().map((p, i) => {
+                                    const urgency = p.diagnosis?.urgency || p.severity || 'low'
+                                    return (
+                                        <div key={i} className={styles.patientRow}>
+                                            <div className={styles.patientAvatar}>
+                                                {p.name?.[0]?.toUpperCase() || '?'}
+                                            </div>
+                                            <div className={styles.patientInfo}>
+                                                <div className={styles.patientName}>{p.name}</div>
+                                                <div className={styles.patientMeta}>
+                                                    {p.age} yrs • {p.gender === 'male' ? 'Male' : 'Female'}
+                                                    {p.offline && ' • 📶 Offline'}
+                                                </div>
+                                            </div>
+                                            <div className={styles.patientCondition}>
+                                                {(p.diagnosis?.primaryConditions?.[0] || p.condition || 'General checkup').slice(0, 30)}
+                                            </div>
+                                            <div className={`${styles.severityBadge} ${styles[urgency]}`}>
+                                                {urgency === 'low' && <><CheckCircle size={12} /> Low</>}
+                                                {urgency === 'medium' && <><Activity size={12} /> Medium</>}
+                                                {(urgency === 'high' || urgency === 'critical') && <><AlertTriangle size={12} /> {urgency === 'critical' ? 'Critical' : 'High'}</>}
+                                            </div>
+                                            <div className={styles.patientDate}>
+                                                {p.date ? new Date(p.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}
+                                            </div>
                                         </div>
-                                        <div className={styles.patientCondition}>{p.condition || 'General checkup'}</div>
-                                        <div className={`${styles.severityBadge} ${styles[p.severity]}`}>
-                                            {p.severity === 'low' && <><CheckCircle size={12} /> Low</>}
-                                            {p.severity === 'medium' && <><Activity size={12} /> Medium</>}
-                                            {p.severity === 'high' && <><AlertTriangle size={12} /> Critical</>}
-                                        </div>
-                                        <div className={styles.patientDate}>{p.date ? new Date(p.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</div>
-                                    </motion.div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         )}
-                    </motion.div>
+                    </div>
                 </div>
             </main>
         </div>

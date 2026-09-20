@@ -52,6 +52,12 @@ desktop.ini
 .classpath
 .settings/
 
+# Empty placeholder folders
+tests/
+infrastructure/
+docs/
+frontend/src/
+
 # Testing
 coverage/
 .nyc_output/
@@ -62,9 +68,20 @@ coverage/
 .temp/
 .tmp/
 
-# AWS
+# Documentation (keep only README.md)
+*_STRATEGY.md
+*_STRUCTURE.md
+*.draft.md
+
+# Shell scripts
+*.sh
+
+# AWS SAM
 .aws-sam/
-samconfig.toml
+backend/.aws-sam/
+# Keep samconfig.toml tracked but add personal configs to ignore if needed
+# samconfig.toml - commented out to allow tracking of default config
+*.toml.user
 
 # Python
 __pycache__/
@@ -75,3 +92,11 @@ __pycache__/
 env/
 venv/
 ENV/
+
+# AWS Credentials (never commit these!)
+**/credentials
+**/.aws/credentials
+aws-exports.js
+
+# Package lock files for Lambda layers (these can be large)
+backend/functions/*/package-lock.json

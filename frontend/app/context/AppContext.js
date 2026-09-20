@@ -6,11 +6,11 @@ const AppContext = createContext()
 
 export const translations = {
     en: {
-        features: 'Features', workflow: 'Workflow', impact: 'Impact', technology: 'Technology',
+        features: 'Features', workflow: 'Workflow', impact: 'Impact', aboutUs: 'About Us',
         login: 'Login', getStarted: 'Get Started',
     },
     hi: {
-        features: 'विशेषताएं', workflow: 'कार्यप्रवाह', impact: 'प्रभाव', technology: 'तकनीक',
+        features: 'विशेषताएं', workflow: 'कार्यप्रवाह', impact: 'प्रभाव', aboutUs: 'हमारे बारे में',
         login: 'लॉगिन', getStarted: 'शुरू करें',
     },
 }

@@ -14,7 +14,7 @@ export default function Navbar() {
         { label: t.features, href: '/features' },
         { label: t.workflow, href: '/workflow' },
         { label: t.impact, href: '/impact' },
-        { label: t.technology, href: '/technology' },
+        { label: t.aboutUs, href: '/about' },
     ]
 
     return (

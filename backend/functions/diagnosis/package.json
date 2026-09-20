@@ -1,0 +1,22 @@
+{
+    "name": "ruraldiag-diagnosis",
+    "version": "1.0.0",
+    "description": "AI-powered medical diagnosis Lambda function",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"No tests specified\""
+    },
+    "dependencies": {
+        "aws-sdk": "^2.1691.0",
+        "uuid": "^9.0.1"
+    },
+    "keywords": [
+        "healthcare",
+        "ai",
+        "diagnosis",
+        "aws",
+        "lambda"
+    ],
+    "author": "RuralDiag Team",
+    "license": "MIT"
+}

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { User, Mail, Phone, Lock, MapPin, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { User, Mail, Phone, Lock, MapPin, ArrowRight, Eye, EyeOff, Stethoscope, Wifi, Globe } from 'lucide-react'
 import styles from './signup.module.css'
 
 export default function Signup() {
@@ -29,6 +29,7 @@ export default function Signup() {
         <div className={styles.root}>
             <div className={styles.left}>
                 <div className={styles.leftOrb} />
+                <div className={styles.leftOrb2} />
                 <div className={styles.leftContent}>
                     <div className={styles.leftBrand}>
                         <div className={styles.leftLogo}>
@@ -36,13 +37,20 @@ export default function Signup() {
                         </div>
                         <span className={styles.leftBrandName}>RuralDiag</span>
                     </div>
-                    <h2 className={styles.leftTitle}>Join the Healthcare Revolution</h2>
-                    <p className={styles.leftDesc}>Start making a difference in rural healthcare today.</p>
+                    <h2 className={styles.leftTitle}>Healthcare for Every Village in India</h2>
+                    <p className={styles.leftDesc}>Join 1M+ ASHA workers already making faster, smarter decisions in the field.</p>
                     <div className={styles.statsRow}>
-                        {[['800M+', 'Rural Indians'], ['5000+', 'ASHA Workers'], ['24/7', 'AI Support']].map(([v, l]) => (
-                            <div key={l} className={styles.statBox}>
-                                <div className={styles.statVal}>{v}</div>
-                                <div className={styles.statLbl}>{l}</div>
+                        {[
+                            { icon: <Stethoscope size={20} />, val: 'Instant Diagnosis', lbl: 'Symptom analysis in seconds, not hours' },
+                            { icon: <Wifi size={20} />, val: 'Works Offline', lbl: 'No internet needed in remote villages' },
+                            { icon: <Globe size={20} />, val: '5 Languages', lbl: 'Hindi, Telugu, Bengali, Tamil, Marathi' },
+                        ].map(({ icon, val, lbl }) => (
+                            <div key={val} className={styles.statBox}>
+                                <div className={styles.statIcon}>{icon}</div>
+                                <div>
+                                    <div className={styles.statVal}>{val}</div>
+                                    <div className={styles.statLbl}>{lbl}</div>
+                                </div>
                             </div>
                         ))}
                     </div>
