@@ -2,6 +2,14 @@
 
 AI diagnostic tool for ASHA workers serving rural India.
 
+## 🚀 Live Deployment
+
+**Backend API:** [`https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod`](https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod)
+
+**Status:** ✅ Deployed on AWS (API Gateway + Lambda + DynamoDB + S3 + SNS)
+
+---
+
 ## The Problem
 
 ASHA workers visit over 1000 homes each month in villages across India. Right now, they write symptoms on paper, have no way to detect emergencies, and district officials can't see what's happening on the ground. When someone gets seriously sick, it's often too late by the time they reach a hospital.
@@ -56,35 +64,60 @@ Works offline first. Data syncs automatically when connection returns.
 
 ## Getting Started
 
-You'll need Node.js 18+ and an AWS account with Bedrock enabled.
+### Prerequisites
+- Node.js 18+
+- AWS Account with appropriate permissions
+- AWS CLI configured
+
+### Quick Start
 
 ```bash
-git clone https://github.com/yourusername/ruraldiag.git
-cd ruraldiag
-npm install
+# Clone the repository
+git clone https://github.com/Krishna-Tripathi78/Rular-Diag.git
+cd RularDiag
 ```
 
-Set up your AWS credentials and copy `.env.example` to `.env` with your details:
+### Backend Setup (AWS SAM)
 
-```env
-AWS_REGION=ap-south-1
-BEDROCK_MODEL_ID=anthropic.claude-3-sonnet-20240229-v1:0
-DYNAMODB_PATIENTS_TABLE=RuralDiag-Patients
-SNS_ALERT_TOPIC=arn:aws:sns:ap-south-1:xxx:PHC-Alerts
-S3_RECORDS_BUCKET=ruraldiag-patient-records
-```
-
-Deploy backend:
 ```bash
-cd infrastructure
-npm run deploy
+# Navigate to backend
+cd backend
+
+# Build and deploy using AWS SAM
+sam build
+sam deploy --guided
+
+# Note: First deployment will prompt for configuration
+# Stack name: ruraldiag-stack
+# Region: ap-south-1 (or your preferred region)
 ```
 
-Run frontend:
+The deployment will create:
+- 5 Lambda functions (Diagnosis, Severity, Alerts, Sync, Analytics)
+- DynamoDB tables (Patients, Diagnoses)
+- S3 bucket for patient data
+- SNS topic for emergency alerts
+- API Gateway endpoint
+
+### Frontend Setup
+
 ```bash
 cd frontend
+
+# Install dependencies
+npm install
+
+# Copy environment template
+cp .env.example .env.local
+
+# Add your deployed API Gateway URL to .env.local
+# NEXT_PUBLIC_API_URL=https://your-api-id.execute-api.region.amazonaws.com/prod
+
+# Run development server
 npm run dev
 ```
+
+Visit `http://localhost:3000` to see the app.
 
 ## Project Structure
 
@@ -164,7 +197,42 @@ But the core idea works. We've proven that AI can support rural health workers, 
 
 ## Built With
 
-AWS Bedrock, Lambda, DynamoDB, SNS, S3, QuickSight. React, Material-UI, i18next on the frontend. Service workers for offline support.
+**Backend:**
+- AWS Lambda (Node.js 18.x)
+- AWS API Gateway
+- Amazon DynamoDB
+- Amazon S3
+- Amazon SNS
+- AWS Bedrock (Claude AI)
+- AWS SAM (Serverless Application Model)
+
+**Frontend:**
+- Next.js 14 (App Router)
+- React 18
+- CSS Modules
+- Lucide Icons
+
+## Deployment Details
+
+**Current Stack:**
+- Stack Name: `ruraldiag-stack`
+- Region: `ap-south-1` (Mumbai)
+- Status: `CREATE_COMPLETE`
+- Deployment Date: September 20, 2026
+
+**Resources:**
+- API Gateway: `https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod`
+- DynamoDB Tables: `RuralDiag-Patients`, `RuralDiag-Diagnoses`
+- S3 Bucket: `ruraldiag-patient-data-053549819347`
+- SNS Topic: `RuralDiag-Alerts`
+
+## API Endpoints
+
+- `POST /diagnose` - AI-powered symptom diagnosis
+- `POST /severity` - Calculate patient severity score
+- `POST /sync` - Sync offline patient data
+- `POST /alerts` - Trigger emergency alerts
+- `GET /analytics` - Retrieve health analytics data
 
 ## License
 
@@ -172,5 +240,4 @@ MIT
 
 ---
 
-*Made for rural health workers who deserve better tools*
-"# Rular-Diag" 
+*Made for rural health workers who deserve better tools* 
