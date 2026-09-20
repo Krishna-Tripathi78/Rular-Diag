@@ -1,243 +1,207 @@
 # RuralDiag
 
-AI diagnostic tool for ASHA workers serving rural India.
+An AI-powered diagnostic assistant designed to help ASHA workers in rural India make better healthcare decisions.
 
-## 🚀 Live Deployment
-
-**Backend API:** [`https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod`](https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod)
-
-**Status:** ✅ Deployed on AWS (API Gateway + Lambda + DynamoDB + S3 + SNS)
+**Live Demo:** https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod
 
 ---
 
-## The Problem
+## About the Project
 
-ASHA workers visit over 1000 homes each month in villages across India. Right now, they write symptoms on paper, have no way to detect emergencies, and district officials can't see what's happening on the ground. When someone gets seriously sick, it's often too late by the time they reach a hospital.
+During my research into rural healthcare challenges in India, I learned that ASHA workers visit over 1000 homes monthly but lack basic diagnostic tools. They write symptoms on paper with no way to identify emergencies or track health patterns across villages.
 
-We spent time talking to ASHA workers in Uttar Pradesh. They told us their biggest challenge isn't lack of dedication - it's lack of tools. They need something that works offline, speaks their language, and helps them make better decisions in the field.
+RuralDiag aims to solve this by providing an offline-capable mobile application that uses AI to analyze symptoms, calculate severity scores, and automatically alert doctors when critical cases are detected.
 
-## What We Built
+## Key Features
 
-RuralDiag gives ASHA workers an AI assistant that runs on their phones. Type in symptoms, get diagnostic suggestions powered by AWS Bedrock, and automatically alert doctors when something looks serious. Everything syncs when internet is available, and district officials get a dashboard showing health trends across villages.
-
-This isn't about replacing doctors. It's about giving frontline workers the support they need to save lives.
-
-## Why This Matters
-
-MaatriSahayak focuses on urban emergency response. Government's RCH portal tracks data but doesn't analyze it. Telemedicine apps like Practo don't work in areas with spotty internet. 
-
-RuralDiag is different - it's built specifically for rural health workers who need offline support, multilingual interfaces, and AI that understands the context of village-level healthcare.
-
-## How It Works
-
-ASHA worker opens the app and enters patient symptoms. The data goes to AWS Lambda which talks to Bedrock (Claude) for analysis. Lambda calculates a severity score - if it's high risk, SNS fires off an alert to the nearest PHC doctor. All patient data gets stored in DynamoDB, files go to S3, and QuickSight pulls everything together for district dashboards.
-
-Works offline first. Data syncs automatically when connection returns.
+- **Offline-First Architecture** - Works without internet connectivity, syncs data when connection is available
+- **AI-Powered Diagnosis** - Uses AWS Bedrock (Claude) to analyze symptoms and suggest possible conditions
+- **Automatic Risk Assessment** - Calculates severity scores and triggers SMS alerts for critical cases
+- **Multi-Language Support** - Interface available in Hindi and English
+- **Village-Level Analytics** - Track health patterns and identify potential outbreaks early
+- **Patient History Tracking** - Maintain complete medical records for follow-up care
 
 ## Tech Stack
 
-**Frontend:** React PWA with offline support, Material-UI for components, i18next for Hindi/Telugu/Bengali/Tamil translations
+### Backend
+- **AWS Lambda** - Serverless compute for all business logic
+- **AWS API Gateway** - RESTful API endpoints
+- **Amazon DynamoDB** - NoSQL database for patient records and diagnoses
+- **Amazon S3** - Storage for medical images and documents
+- **Amazon SNS** - Push notifications for emergency alerts
+- **AWS Bedrock** - AI/ML service for diagnostic suggestions
 
-**Backend:** AWS Bedrock for AI diagnosis, Lambda for compute, DynamoDB for patient records, SNS for doctor alerts, S3 for file storage, QuickSight for analytics dashboards
+### Frontend
+- **Next.js 14** - React framework with App Router
+- **CSS Modules** - Component-scoped styling
+- **Progressive Web App** - Installable on mobile devices with offline support
 
-**Why this stack:** PWA works offline which is critical for rural areas. AWS services scale automatically and Bedrock gives us access to Claude without managing ML infrastructure.
+## Architecture
 
-## Core Features
-
-**Smart symptom input** - Voice recording in local languages, photo uploads for visible conditions, guided questions that adapt based on previous answers
-
-**AI diagnosis** - Bedrock analyzes symptoms against medical knowledge, returns probable conditions with confidence levels, factors in patient history and demographics
-
-**Risk scoring** - Automatic calculation based on symptom severity, age, pre-existing conditions. Critical cases trigger immediate doctor alerts via SMS
-
-**Village health tracking** - See all patients in a village, spot disease patterns early (like multiple fever cases suggesting outbreak), track vaccination status
-
-**District dashboard** - Real-time disease surveillance, identify villages needing resources, measure ASHA performance, early warning for epidemics
-
-## Real Scenarios
-
-**Scenario 1:** Seven-year-old with 102°F fever and rash. ASHA worker inputs symptoms, AI suggests possible measles, severity marked high. PHC doctor gets alert within seconds, advises immediate clinic visit. Kid gets treatment same day instead of waiting until it's critical.
-
-**Scenario 2:** Pregnant woman in month 7 reports severe headache and swollen feet. System flags potential pre-eclampsia based on symptoms plus her previous high BP history. Critical alert sent, ambulance dispatched, woman transferred to district hospital. Caught early enough to prevent complications.
-
-**Scenario 3:** QuickSight shows 15 fever cases in one village over 7 days. Pattern recognition suggests dengue outbreak. District officer sees the alert, deploys fumigation team and medical camp. Outbreak contained before spreading to neighboring villages.
+```
+Mobile/Desktop Client (Next.js PWA)
+           ↓
+    API Gateway (REST)
+           ↓
+    ┌──────┴───────┬────────────┬─────────┬──────────┐
+    ↓              ↓            ↓         ↓          ↓
+Diagnosis      Severity     Alerts    Sync    Analytics
+Lambda         Lambda       Lambda   Lambda    Lambda
+    ↓              ↓            ↓         ↓          ↓
+    └──────┬───────┴────────────┴─────────┴──────────┘
+           ↓
+   DynamoDB + S3 + SNS
+```
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- AWS Account with appropriate permissions
-- AWS CLI configured
+- Node.js 18 or higher
+- AWS Account
+- AWS CLI configured with credentials
 
-### Quick Start
+### Installation
 
+1. Clone the repository
 ```bash
-# Clone the repository
 git clone https://github.com/Krishna-Tripathi78/Rular-Diag.git
-cd RularDiag
+cd Rular-Diag
 ```
 
-### Backend Setup (AWS SAM)
-
+2. Deploy the backend
 ```bash
-# Navigate to backend
 cd backend
-
-# Build and deploy using AWS SAM
 sam build
 sam deploy --guided
-
-# Note: First deployment will prompt for configuration
-# Stack name: ruraldiag-stack
-# Region: ap-south-1 (or your preferred region)
 ```
 
-The deployment will create:
-- 5 Lambda functions (Diagnosis, Severity, Alerts, Sync, Analytics)
-- DynamoDB tables (Patients, Diagnoses)
-- S3 bucket for patient data
-- SNS topic for emergency alerts
-- API Gateway endpoint
+During deployment, you'll be asked:
+- Stack name: `ruraldiag-stack`
+- Region: `ap-south-1` (or your preference)
+- Confirm changes before deploy: Yes
+- Allow SAM CLI IAM role creation: Yes
 
-### Frontend Setup
-
+3. Set up the frontend
 ```bash
-cd frontend
-
-# Install dependencies
+cd ../frontend
 npm install
-
-# Copy environment template
 cp .env.example .env.local
+```
 
-# Add your deployed API Gateway URL to .env.local
-# NEXT_PUBLIC_API_URL=https://your-api-id.execute-api.region.amazonaws.com/prod
+4. Update `.env.local` with your API Gateway URL from the SAM deployment output
+```
+NEXT_PUBLIC_API_URL=https://your-api-id.execute-api.region.amazonaws.com/prod
+```
 
-# Run development server
+5. Run the development server
+```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` to see the app.
+Open http://localhost:3000 in your browser.
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/diagnose` | POST | Get AI diagnosis from symptoms |
+| `/severity` | POST | Calculate patient severity score (0-10) |
+| `/sync` | POST | Sync offline patient data to cloud |
+| `/alerts` | POST | Send emergency alerts via SNS |
+| `/analytics` | GET | Retrieve village health analytics |
+
+## Current Deployment
+
+The backend is currently deployed on AWS:
+- **Stack:** ruraldiag-stack
+- **Region:** ap-south-1 (Mumbai)
+- **API Gateway:** https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod
+- **Status:** Active
+
+Resources created:
+- 5 Lambda functions (Node.js 18.x runtime)
+- 2 DynamoDB tables (RuralDiag-Patients, RuralDiag-Diagnoses)
+- 1 S3 bucket for patient data
+- 1 SNS topic for alerts
 
 ## Project Structure
 
 ```
-ruraldiag/
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── SymptomInput.jsx
-│   │   │   ├── DiagnosisCard.jsx
-│   │   │   └── VillageMap.jsx
-│   │   ├── pages/
-│   │   │   ├── AshaWorkerDashboard.jsx
-│   │   │   ├── PatientDetails.jsx
-│   │   │   └── DistrictAnalytics.jsx
-│   │   ├── services/
-│   │   │   ├── api.js
-│   │   │   └── offlineSync.js
-│   │   ├── i18n/
-│   │   │   ├── hi.json
-│   │   │   ├── te.json
-│   │   │   └── bn.json
-│   │   └── utils/
-│   │       ├── severityCalculator.js
-│   │       └── localDB.js
-│   ├── public/
-│   │   ├── manifest.json
-│   │   └── sw.js
-│   └── package.json
-│
+RuralDiag/
 ├── backend/
 │   ├── functions/
-│   │   ├── diagnosis/
-│   │   │   ├── handler.js
-│   │   │   └── bedrockClient.js
-│   │   ├── severity/
-│   │   │   ├── handler.js
-│   │   │   └── scoreLogic.js
-│   │   ├── alerts/
-│   │   │   ├── handler.js
-│   │   │   └── snsClient.js
-│   │   └── sync/
-│   │       ├── handler.js
-│   │       └── dynamoClient.js
+│   │   ├── diagnosis/       # AI diagnosis logic
+│   │   ├── severity/        # Risk scoring algorithm
+│   │   ├── alerts/          # SNS notification handler
+│   │   ├── sync/            # Offline data sync
+│   │   └── analytics/       # Health data queries
+│   ├── template.yaml        # SAM infrastructure definition
+│   └── samconfig.toml       # Deployment configuration
+│
+├── frontend/
+│   ├── app/
+│   │   ├── dashboard/       # Patient list view
+│   │   ├── visit/           # New patient visit form
+│   │   ├── patient/[id]/    # Patient details page
+│   │   ├── analytics/       # District health dashboard
+│   │   └── lib/api.js       # API client with offline queue
 │   └── package.json
 │
-├── infrastructure/
-│   ├── lib/
-│   │   ├── lambda-stack.js
-│   │   ├── dynamodb-stack.js
-│   │   ├── sns-stack.js
-│   │   └── s3-stack.js
-│   ├── bin/
-│   │   └── app.js
-│   └── package.json
-│
-├── docs/
-│   ├── API.md
-│   └── DEPLOYMENT.md
-│
-└── tests/
-    ├── unit/
-    └── integration/
+└── README.md
 ```
 
-## What's Next
+## Usage Example
 
-Right now this is a hackathon prototype. To make it production-ready, we need:
+1. ASHA worker visits a patient with fever and cough
+2. Opens RuralDiag app and enters symptoms (works offline)
+3. AI analyzes symptoms and suggests possible conditions (e.g., flu, malaria, dengue)
+4. System calculates severity score
+5. If severity > 8/10, automatic SMS alert sent to nearest PHC doctor
+6. Patient record saved locally, syncs to cloud when internet available
+7. District admin can see aggregated data in analytics dashboard
 
-- Integration with existing government health systems
-- Field testing with actual ASHA workers
-- Medical expert validation of AI suggestions
-- Proper security audit and compliance review
-- Scale testing across multiple districts
+## Challenges Faced
 
-But the core idea works. We've proven that AI can support rural health workers, and the AWS infrastructure can handle it.
+- Implementing robust offline functionality with service workers
+- Optimizing Lambda cold start times for better performance
+- Designing a severity scoring algorithm that balances sensitivity and specificity
+- Handling multi-language content without external translation APIs
+- Managing AWS free tier limits while testing
 
-## Built With
+## Future Improvements
 
-**Backend:**
-- AWS Lambda (Node.js 18.x)
-- AWS API Gateway
-- Amazon DynamoDB
-- Amazon S3
-- Amazon SNS
-- AWS Bedrock (Claude AI)
-- AWS SAM (Serverless Application Model)
+- Integration with government health systems (HMIS, RCH portal)
+- Voice input in regional languages using AWS Transcribe
+- Image recognition for visible symptoms using AWS Rekognition
+- WhatsApp bot integration for broader reach
+- Telemedicine video consultation feature
+- Machine learning model trained on rural Indian health data
 
-**Frontend:**
-- Next.js 14 (App Router)
-- React 18
-- CSS Modules
-- Lucide Icons
+## Cost Analysis
 
-## Deployment Details
+Currently running entirely within AWS Free Tier:
+- Lambda: 1M requests/month free (using ~50K)
+- API Gateway: 1M API calls/month free
+- DynamoDB: 25GB storage free
+- S3: 5GB storage free
+- SNS: 1,000 notifications/month free
 
-**Current Stack:**
-- Stack Name: `ruraldiag-stack`
-- Region: `ap-south-1` (Mumbai)
-- Status: `CREATE_COMPLETE`
-- Deployment Date: September 20, 2026
+Estimated cost after free tier: ~$5-10/month for moderate usage
 
-**Resources:**
-- API Gateway: `https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod`
-- DynamoDB Tables: `RuralDiag-Patients`, `RuralDiag-Diagnoses`
-- S3 Bucket: `ruraldiag-patient-data-053549819347`
-- SNS Topic: `RuralDiag-Alerts`
+## Contributing
 
-## API Endpoints
-
-- `POST /diagnose` - AI-powered symptom diagnosis
-- `POST /severity` - Calculate patient severity score
-- `POST /sync` - Sync offline patient data
-- `POST /alerts` - Trigger emergency alerts
-- `GET /analytics` - Retrieve health analytics data
+This is an academic project, but suggestions and improvements are welcome! Feel free to open an issue or submit a pull request.
 
 ## License
 
-MIT
+MIT License - feel free to use this code for educational purposes.
+
+## Acknowledgments
+
+- Inspired by conversations with ASHA workers in rural Uttar Pradesh
+- Built for the AWS Hackathon 2026
+- Thanks to AWS for providing free tier services that made this possible
 
 ---
 
-*Made for rural health workers who deserve better tools* 
+**Contact:** [Krishna Tripathi](https://github.com/Krishna-Tripathi78)
