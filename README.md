@@ -2,7 +2,9 @@
 
 An AI-powered diagnostic assistant designed to help ASHA workers in rural India make better healthcare decisions.
 
-**Live Demo:** https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod
+🌐 **Live Application:** https://main.dfvpma65yi8v4.amplifyapp.com
+
+🔗 **Backend API:** https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod
 
 ---
 
@@ -112,17 +114,25 @@ Open http://localhost:3000 in your browser.
 
 ## Current Deployment
 
-The backend is currently deployed on AWS:
+The application is fully deployed on AWS:
+
+**Frontend (AWS Amplify):**
+- **URL:** https://main.dfvpma65yi8v4.amplifyapp.com
+- **Hosting:** AWS Amplify with automatic CI/CD
+- **Status:** ✅ Active
+
+**Backend (Serverless):**
 - **Stack:** ruraldiag-stack
 - **Region:** ap-south-1 (Mumbai)
 - **API Gateway:** https://p6v39w1oah.execute-api.ap-south-1.amazonaws.com/prod
-- **Status:** Active
+- **Status:** ✅ Active
 
-Resources created:
+**Resources:**
 - 5 Lambda functions (Node.js 18.x runtime)
 - 2 DynamoDB tables (RuralDiag-Patients, RuralDiag-Diagnoses)
 - 1 S3 bucket for patient data
-- 1 SNS topic for alerts
+- 1 SNS topic for emergency alerts
+- Amplify Hosting with global CDN
 
 ## Project Structure
 
